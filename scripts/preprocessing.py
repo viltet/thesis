@@ -8,6 +8,7 @@ import contractions
 import os
 from pathlib import Path
 
+
 # Enable tqdm for pandas
 tqdm.pandas()
 
@@ -94,16 +95,17 @@ def process_reviews(input_path, output_path, min_length=10):
 
 def main():
     """Main execution"""
-    input_dir = Path("/Users/viltetverijonaite/Desktop/MSC/THESIS")
-    
+    base_dir = Path(__file__).resolve().parent
+    data_dir = base_dir / "data"
+
     paths = {
-        "alexa": input_dir / "alexa_reviews_all.csv",
-        "google": input_dir / "google_assistant_reviews_all.csv"
+        "alexa": data_dir / "alexa_reviews_all.csv",
+        "google": data_dir / "google_assistant_reviews_all.csv"
     }
 
     output_paths = {
-        "alexa": input_dir / "alexa_processed.csv",
-        "google": input_dir / "google_processed.csv"
+        "alexa": data_dir / "alexa_processed.csv",
+        "google": data_dir / "google_processed.csv"
     }
 
     start_date = pd.Timestamp("2017-10-01")
@@ -118,7 +120,7 @@ def main():
         columns_to_keep = ['reviewId', 'content', 'score', 'at', 'reviewCreatedVersion', 'appVersion']
         df = df[columns_to_keep].dropna(subset=['content']).drop_duplicates(subset=['reviewId'])
 
-        interim_path = input_dir / f"{assistant}_filtered.csv"
+        interim_path = data_dir / f"{assistant}_filtered.csv"
         df.to_csv(interim_path, index=False)
 
         process_reviews(interim_path, output_paths[assistant])
