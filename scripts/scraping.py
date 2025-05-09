@@ -1,54 +1,65 @@
 from google_play_scraper import reviews, Sort
 import pandas as pd
 import time
+from pathlib import Path
 
-# App ID for Amazon Alexa
-app_id = "com.amazon.dee.app"
+def fetch_reviews(app_id, app_name, backup_path, final_path,
+                  batch_size=100, sleep_time=1, backup_interval=1000):
+    all_reviews = []
+    count = 0
+    continuation_token = None
 
-# Absolute paths to save files
-backup_filename = "/Users/viltetverijonaite/Desktop/MSC/THESIS/alexa_reviews_backup.csv"
-final_filename = "/Users/viltetverijonaite/Desktop/MSC/THESIS/alexa_reviews_all.csv"
+    print(f"Fetching ALL reviews for {app_name}...")
 
-all_reviews = []
-count = 0
-batch_size = 100  # how many reviews per API call
-sleep_time = 1   # seconds between requests
-backup_interval = 1000  # how often to save progress
+    while True:
+        result, continuation_token = reviews(
+            app_id,
+            lang='en',
+            country='us',
+            sort=Sort.NEWEST,
+            count=batch_size,
+            continuation_token=continuation_token
+        )
 
-print("Fetching ALL reviews for Amazon Alexa...")
+        if not result:
+            break
 
-continuation_token = None
+        all_reviews.extend(result)
+        count += len(result)
+        print(f"Fetched {count} reviews for {app_name} so far...")
 
-while True:
-    result, continuation_token = reviews(
-        app_id,
-        lang='en',
-        country='us',
-        sort=Sort.NEWEST,  # newest first
-        count=batch_size,
-        continuation_token=continuation_token
-    )
+        if count % backup_interval < batch_size:
+            df_backup = pd.DataFrame(all_reviews)
+            df_backup.to_csv(backup_path, index=False)
+            print(f"Auto-saved {count} reviews to {backup_path}")
 
-    if not result:
-        break  # No more reviews
+        if continuation_token is None:
+            break
 
-    all_reviews.extend(result)
-    count += len(result)
+        time.sleep(sleep_time)
 
-    print(f"Fetched {count} reviews so far...")
+    df_final = pd.DataFrame(all_reviews)
+    df_final.to_csv(final_path, index=False)
+    print(f"ALL reviews for {app_name} saved to {final_path}")
 
-    # Backup every backup_interval reviews
-    if count % backup_interval < batch_size:
-        df_backup = pd.DataFrame(all_reviews)
-        df_backup.to_csv(backup_filename, index=False)
-        print(f"Auto-saved {count} reviews to {backup_filename}")
 
-    if continuation_token is None:
-        break
+# === Define base directory ===
+BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = BASE_DIR / "data"
+DATA_DIR.mkdir(exist_ok=True)  # Create 'data' folder if it doesn't exist
 
-    time.sleep(sleep_time)
+# === Alexa ===
+fetch_reviews(
+    app_id="com.amazon.dee.app",
+    app_name="Amazon Alexa",
+    backup_path=DATA_DIR / "alexa_reviews_backup.csv",
+    final_path=DATA_DIR / "alexa_reviews_all.csv"
+)
 
-# Final save
-df_final = pd.DataFrame(all_reviews)
-df_final.to_csv(final_filename, index=False)
-print(f"ALL reviews saved to {final_filename}")
+# === Google Assistant ===
+fetch_reviews(
+    app_id="com.google.android.apps.googleassistant",
+    app_name="Google Assistant",
+    backup_path=DATA_DIR / "google_assistant_reviews_backup.csv",
+    final_path=DATA_DIR / "google_assistant_reviews_all.csv"
+)
