@@ -14,12 +14,19 @@ import torch
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import logging
 from tqdm import tqdm
+from pathlib import Path
+
 
 # === Configuration ===
-INPUT_DIR = "/Users/viltetverijonaite/Desktop/MSC/THESIS/model_comparison"
-LABELED_DATA_FILE = "pilot_subset.csv" # This file has sentiment_class already
-OUTPUT_DIR = "/Users/viltetverijonaite/Desktop/MSC/THESIS/model_comparison/results"
-MODELS_DIR = "/Users/viltetverijonaite/Desktop/MSC/THESIS/model_comparison/models"
+BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = BASE_DIR / "data"
+MODEL_COMPARISON_DIR = BASE_DIR / "model_comparison"
+
+INPUT_DIR = DATA_DIR.as_posix()
+LABELED_DATA_FILE = (DATA_DIR / "pilot_subset.csv").as_posix()
+OUTPUT_DIR = (MODEL_COMPARISON_DIR / "results").as_posix()
+MODELS_DIR = (MODEL_COMPARISON_DIR / "models").as_posix()
+
 RANDOM_SEED = 100
 
 # Set up logging
