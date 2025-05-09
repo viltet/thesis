@@ -20,14 +20,19 @@ model = DistilBertForSequenceClassification.from_pretrained(model_name)
 model.to(device)
 model.eval() # Set model to evaluation mode
 
-# File paths 
-input_files = {
-    "alexa": "/Users/viltetverijonaite/Desktop/MSC/THESIS/alexa_processed.csv",
-    "google": "/Users/viltetverijonaite/Desktop/MSC/THESIS/google_processed.csv"
-}
-# Output directory where the new CSVs with sentiment will be saved
-output_dir = "/Users/viltetverijonaite/Desktop/MSC/THESIS/" # Ensure this directory exists
+from pathlib import Path
 
+# Base directory for the project (assuming script is inside 'thesis' folder)
+BASE_DIR = Path(__file__).resolve().parent  # Dynamically gets the current script's folder
+
+# Input files inside the 'data' folder within the 'thesis' directory
+input_files = {
+    "alexa": BASE_DIR / "data" / "alexa_processed.csv",
+    "google": BASE_DIR / "data" / "google_processed.csv"
+}
+
+# Output directory inside the 'results' folder within the 'thesis' directory
+output_dir = BASE_DIR / "results"
 # Parameters
 batch_size = 32 # Adjust based on your available RAM/VRAM
 # Thresholds for mapping binary output to 3 classes
