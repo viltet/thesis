@@ -11,19 +11,25 @@ from tqdm import tqdm
 from datetime import datetime
 import pickle
 import warnings
+from pathlib import Path
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-# File paths 
+# Base directory is the folder where the script is located
+BASE_DIR = Path(__file__).resolve().parent
+
+# Input files in the data folder
 input_files = {
-    "alexa": "/Users/viltetverijonaite/Desktop/MSC/THESIS/alexa_sentiment.csv",
-    "google": "/Users/viltetverijonaite/Desktop/MSC/THESIS/google_sentiment.csv"
+    "alexa": BASE_DIR / "data" / "alexa_sentiment.csv",
+    "google": BASE_DIR / "data" / "google_sentiment.csv"
 }
-output_dir = "/Users/viltetverijonaite/Desktop/MSC/THESIS/"
 
-# Create topic modeling directory if it doesn't exist
-topic_model_dir = os.path.join(output_dir, "topic_models")
-os.makedirs(topic_model_dir, exist_ok=True)
+# Output directory (results folder inside thesis)
+output_dir = BASE_DIR / "results"
+output_dir.mkdir(parents=True, exist_ok=True)
 
+# Topic model directory inside results
+topic_model_dir = output_dir / "topic_models"
+topic_model_dir.mkdir(parents=True, exist_ok=True)
 # Use GPU if available
 use_gpu = True
 if use_gpu:

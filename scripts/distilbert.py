@@ -22,7 +22,7 @@ model.eval() # Set model to evaluation mode
 
 from pathlib import Path
 
-# Base directory for the project (assuming script is inside 'thesis' folder)
+# Base directory for the project 
 BASE_DIR = Path(__file__).resolve().parent  # Dynamically gets the current script's folder
 
 # Input files inside the 'data' folder within the 'thesis' directory
