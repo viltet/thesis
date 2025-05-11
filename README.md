@@ -39,7 +39,7 @@ The research follows an integrated analytical pipeline:
 6.  **Theoretical Integration:**
     * Mapping empirical findings back to theoretical frameworks (e.g., Expectation Confirmation Theory, Privacy Calculus, Attachment Theory).
 
-
+## 📁 Repository Structure
 data/
 Processed input review data (CSV files for Alexa and Google Assistant)
 
