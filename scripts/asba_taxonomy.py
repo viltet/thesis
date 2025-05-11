@@ -11,30 +11,35 @@ import re
 from collections import defaultdict
 import spacy
 from itertools import combinations
+from pathlib import Path
 
 # Load spaCy for sentence segmentation and dependency parsing
 print("Loading spaCy model...")
 nlp = spacy.load("en_core_web_sm")
 
-# Define file paths
-base_dir = "/Users/viltetverijonaite/Desktop/MSC/THESIS/"
-output_dir = os.path.join(base_dir, "absa_results")
-os.makedirs(output_dir, exist_ok=True)
+# Base directory is the folder where the script is located (e.g., thesis/scripts)
+BASE_DIR = Path(__file__).resolve().parent
 
-# Input files for both assistants
+# Go up one directory from BASE_DIR (to thesis/)
+THESIS_ROOT = BASE_DIR.parent # This gets you to /Users/viltetverijonaite/Desktop/MSC/THESIS/thesis/
+
+# Define output directory within results
+output_dir = THESIS_ROOT / "results" / "absa_results" # Relative path
+output_dir.mkdir(parents=True, exist_ok=True)
+
+# Input files relative to THESIS_ROOT
 input_files = {
     "alexa": {
-        "with_topics": os.path.join(base_dir, "alexa_with_topics.csv"),
-        "topic_terms": os.path.join(base_dir, "topic_models/alexa_topic_terms.pkl"),
-        "topics_over_time": os.path.join(base_dir, "topic_models/alexa_topics_over_time.csv")
+        "with_topics": THESIS_ROOT / "results" / "alexa_with_topics.csv", # Relative path
+        "topic_terms": THESIS_ROOT / "results" / "topic_models" / "alexa_topic_terms.pkl", # Relative path
+        "topics_over_time": THESIS_ROOT / "results" / "topic_models" / "alexa_topics_over_time.csv" # Relative path
     },
     "google": {
-        "with_topics": os.path.join(base_dir, "google_with_topics.csv"),
-        "topic_terms": os.path.join(base_dir, "topic_models/google_topic_terms.pkl"),
-        "topics_over_time": os.path.join(base_dir, "topic_models/google_topics_over_time.csv")
+        "with_topics": THESIS_ROOT / "results" / "google_with_topics.csv", # Relative path
+        "topic_terms": THESIS_ROOT / "results" / "topic_models" / "google_topic_terms.pkl", # Relative path
+        "topics_over_time": THESIS_ROOT / "results" / "topic_models" / "google_topics_over_time.csv" # Relative path
     }
 }
-
 # Define theory-aligned taxonomy with extended keywords for more precise matching
 taxonomy = {
     "Functionality & Performance": [
