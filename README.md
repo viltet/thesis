@@ -38,10 +38,20 @@ The research follows an integrated analytical pipeline:
     * Quantification of impact magnitude and pattern comparison between platforms.
 6.  **Theoretical Integration:**
     * Mapping empirical findings back to theoretical frameworks (e.g., Expectation Confirmation Theory, Privacy Calculus, Attachment Theory).
-    * Testing theoretical predictions and identifying limitations/extensions.
 
-## Repository Structure
-thesis/
-├── data/         # Processed input review data
-├── results/      # All analysis outputs and visualizations
-└── scripts/      # Python scripts for the analysis pipeline
+
+data/
+Processed input review data (CSV files for Alexa and Google Assistant)
+
+results/
+All analysis outputs and visualizations
+
+
+scripts/
+Python scripts for the full NLP and analysis pipeline
+
+requirements.txt
+Python dependencies for reproducibility
+
+README.md
+Project overview, methodology, and setup instructions
