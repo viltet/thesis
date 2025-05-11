@@ -8,7 +8,6 @@ from hdbscan import HDBSCAN
 import matplotlib.pyplot as plt
 import os
 from tqdm import tqdm
-from datetime import datetime
 import pickle
 import warnings
 from pathlib import Path
@@ -23,14 +22,15 @@ BASE_DIR = Path(__file__).resolve().parent
 # Go up one directory from BASE_DIR (to thesis/)
 THESIS_ROOT = BASE_DIR.parent
 
-# Input files in the results folder (assuming sentiment analysis output is used)
+# Input files in the results folder 
+# These files should contain 'at', 'clean_content', 'sentiment', 'sentiment_score'
 input_files = {
-    "alexa": THESIS_ROOT / "results" / "alexa_sentiment.csv", # Corrected path
-    "google": THESIS_ROOT / "results" / "google_sentiment.csv" # Corrected path
+    "alexa": THESIS_ROOT / "results" / "alexa_sentiment.csv", 
+    "google": THESIS_ROOT / "results" / "google_sentiment.csv" 
 }
 
 # Output directory (results folder inside thesis)
-output_dir = THESIS_ROOT / "results" # Corrected path
+output_dir = THESIS_ROOT / "results" 
 output_dir.mkdir(parents=True, exist_ok=True)
 
 # Topic model directory inside results
@@ -53,39 +53,20 @@ embedding_model = SentenceTransformer('all-MiniLM-L6-v2', device=device) # Pass 
 
 # Configure BERTopic parameters
 vectorizer_model = CountVectorizer(stop_words="english",
-                                  min_df=10, # min_df is often dataset dependent, 10 is a starting point
+                                  min_df=10,
                                   ngram_range=(1, 2))
 
 umap_model = UMAP(n_neighbors=15,
-                 n_components=5, # 5 is a common dimensionality reduction target
+                 n_components=5,
                  min_dist=0.0,
                  metric='cosine',
                  random_state=42)
 
-hdbscan_model = HDBSCAN(min_cluster_size=30, # min_cluster_size is often dataset dependent, 30 is a starting point
+hdbscan_model = HDBSCAN(min_cluster_size=30,
                        min_samples=10,
                        metric='euclidean',
                        gen_min_span_tree=True,
-                       prediction_data=True) # Needed if you plan to predict topics on new data
-
-# Function to convert string dates to datetime (Keep if needed elsewhere, but pandas does it on load)
-# def parse_dates(df):
-#     df['at'] = pd.to_datetime(df['at'])
-#     return df
-
-# Function to extract year-quarter from date (Keep if needed elsewhere)
-# def extract_year_quarter(date):
-#     year = date.year
-#     quarter = (date.month - 1) // 3 + 1
-#     return f"{year}-Q{quarter}"
-
-# Function to preprocess data for temporal topic analysis (Sorting is the main part needed for BERTopic)
-# def preprocess_for_temporal(df):
-#     # Extract year-quarter (can do this later if needed for analysis)
-#     # df['period'] = df['at'].apply(extract_year_quarter)
-#     # Sort by date
-#     df = df.sort_values('at')
-#     return df
+                       prediction_data=True)
 
 
 # --- Processing each dataset ---
@@ -103,8 +84,8 @@ for name, path in input_files.items():
         df = pd.read_csv(path, parse_dates=['at'])
 
         # --- Data Validation and Cleaning ---
-        # Check for the required columns ('at' for date, 'clean_content' for text)
-        required_cols = ['at', 'clean_content']
+        # Check for the required columns ('at' for date, 'clean_content' for text, sentiment for Topic-Sentiment)
+        required_cols = ['at', 'clean_content', 'sentiment']
         if not all(col in df.columns for col in required_cols):
             missing = [col for col in required_cols if col not in df.columns]
             print(f"Error: Missing required columns {missing} in {path}. Skipping {name}.")
@@ -120,14 +101,19 @@ for name, path in input_files.items():
 
         print(f"Loaded and cleaned {len(df)} valid reviews.")
 
-        # Sort by date - CRITICAL for temporal analysis
+        # Sort by date - CRITICAL for temporal analysis later
         df_sorted = df.sort_values('at').reset_index(drop=True) # Use a new name for clarity
 
-        # Get documents and timestamps from the *sorted* dataframe
-        docs = df_sorted['clean_content'].astype(str).tolist()
-        timestamps = df_sorted['at'].tolist() # Use timestamps from the sorted df
+        # Get documents and timestamps from the *sorted* dataframe for temporal analysis
+        docs_sorted = df_sorted['clean_content'].astype(str).tolist()
+        timestamps_sorted = df_sorted['at'].tolist() # Use timestamps from the sorted df
 
-        print(f"Creating and fitting BERTopic model for {name} on {len(docs)} documents...")
+        # Get documents from the *original* dataframe for fitting (sorting isn't strictly required by fit_transform itself)
+        # However, using the sorted docs is fine and often simpler to keep consistent
+        docs_for_fitting = docs_sorted # Use the sorted list for fitting
+
+
+        print(f"Creating and fitting BERTopic model for {name} on {len(docs_for_fitting)} documents...")
 
         # Create and fit BERTopic model (embedding_model device already set)
         topic_model = BERTopic(
@@ -139,25 +125,20 @@ for name, path in input_files.items():
             verbose=True
         )
 
-        # Fit the model and get topics
-        # Fit on the sorted documents - BERTopic uses this for temporal analysis if timestamps are provided later
-        topics, probs = topic_model.fit_transform(docs, timestamps) # Fit with timestamps included
+        # Fit the model - DO NOT pass timestamps here to avoid the TypeError
+        topics, probs = topic_model.fit_transform(docs_for_fitting)
+
+
+        # Add topics back to the *sorted* dataframe
+        df_sorted['topic'] = topics
+        # Optional: store topic probabilities if needed
+        # df_sorted['topic_probability'] = [p[t] if t != -1 else 0 for t, p in zip(topics, probs)] # Example for assigned topic probability
 
 
         # Save the number of documents per topic
         topic_counts = topic_model.get_topic_info()
         topic_counts.to_csv(os.path.join(topic_model_dir, f"{name}_topic_counts.csv"), index=False)
 
-        # Get the top topics for visualization (excluding outlier topic -1)
-        top_n_viz = 15 # Number of top topics to visualize
-        # Filter topic_counts for non-outlier topics before getting head
-        viz_topics = topic_counts[topic_counts['Topic'] != -1].sort_values('Count', ascending=False)['Topic'].head(top_n_viz).tolist()
-
-
-        # Store topics in the sorted dataframe
-        df_sorted['topic'] = topics
-        # Optional: store topic probabilities if needed
-        # df_sorted['topic_probability'] = [p[t] if t != -1 else 0 for t, p in zip(topics, probs)] # Example for assigned topic probability
 
         # Generate topic representations (keywords) and save
         print("Generating topic keywords...")
@@ -178,6 +159,12 @@ for name, path in input_files.items():
 
         # --- Create Visualizations ---
         print("Creating topic visualizations...")
+
+        # Get the top topics for visualization (excluding outlier topic -1)
+        top_n_viz = 15 # Number of top topics to visualize
+        # Filter topic_counts for non-outlier topics before getting head
+        viz_topics = topic_counts[topic_counts['Topic'] != -1].sort_values('Count', ascending=False)['Topic'].head(top_n_viz).tolist()
+
 
         # Topic word scores (shows top words per topic)
         try:
@@ -208,17 +195,12 @@ for name, path in input_files.items():
              print(f"Error visualizing hierarchy: {e}")
 
 
-        # Temporal topic analysis (Evolution of topics over time)
+        # --- Temporal topic analysis ---
+        # Perform temporal topic modeling as a separate step
         print("Performing temporal topic analysis...")
         try:
-            # Use actual timestamps from sorted docs and specify quarterly frequency
-            # topics_over_time is now called by passing timestamps during fit_transform
-            # Access the stored result directly from the model
-            if hasattr(topic_model, 'topics_over_time_'): # Check if temporal data was computed
-                 topics_over_time_df = topic_model.topics_over_time_
-            else: # If not computed during fit (e.g., if no timestamps were passed)
-                 topics_over_time_df = topic_model.topics_over_time(docs, timestamps, freq='Q')
-
+            # IMPORTANT: Pass the *sorted* documents and timestamps
+            topics_over_time_df = topic_model.topics_over_time(docs_sorted, timestamps_sorted, freq='Q') # Call topics_over_time separately with sorted data
 
             oot_csv_path = os.path.join(topic_model_dir, f"{name}_topics_over_time.csv")
             topics_over_time_df.to_csv(oot_csv_path, index=False)
@@ -229,12 +211,12 @@ for name, path in input_files.items():
             topics_for_oot_viz = topics_over_time_df['Topic'].unique().tolist()
             if -1 in topics_for_oot_viz:
                 topics_for_oot_viz.remove(-1)
-            # Select top N topics based on overall count
-            # Ensure these topics are in the topics_over_time_df
+            # Select top N topics based on overall count (ensuring they appeared over time)
             available_oot_topics = topic_counts.loc[topic_counts['Topic'].isin(topics_for_oot_viz)]
             topics_for_oot_viz = available_oot_topics.sort_values('Count', ascending=False)['Topic'].head(10).tolist()
 
-            fig = topic_model.visualize_topics_over_time(topics_over_time_df, topics=topics_for_oot_viz) # Pass the dataframe and selected topics
+            # Pass the dataframe returned by topics_over_time and the selected topics
+            fig = topic_model.visualize_topics_over_time(topics_over_time_df, topics=topics_for_oot_viz)
             oot_html_path = os.path.join(topic_model_dir, f"{name}_topic_evolution.html")
             fig.write_html(oot_html_path)
             print(f"Saved topic evolution plot to {oot_html_path}")
@@ -248,16 +230,19 @@ for name, path in input_files.items():
         print("Preparing data for Topic-Sentiment Analysis and potential ABSA input...")
 
         # Calculate sentiment distribution per topic (Topic-Sentiment Analysis)
-        # This shows the overall sentiment composition within each topic
         # Use the sorted dataframe which contains topics and original sentiment
-        sentiment_by_topic = pd.crosstab(df_sorted['topic'], df_sorted['sentiment'], normalize='index') * 100
-        sentiment_by_topic = sentiment_by_topic.reset_index()
-        sentiment_by_topic.columns.name = None # Remove index name
-        sentiment_by_topic['topic_keywords'] = sentiment_by_topic['topic'].map(lambda x: topic_keywords_map.get(x, "Outlier"))
+        if 'sentiment' in df_sorted.columns: # Ensure sentiment column exists
+            sentiment_by_topic = pd.crosstab(df_sorted['topic'], df_sorted['sentiment'], normalize='index') * 100
+            sentiment_by_topic = sentiment_by_topic.reset_index()
+            sentiment_by_topic.columns.name = None # Remove index name
+            sentiment_by_topic['topic_keywords'] = sentiment_by_topic['topic'].map(lambda x: topic_keywords_map.get(x, "Outlier"))
 
-        topic_sentiment_path = os.path.join(output_dir, f"{name}_topic_sentiment.csv")
-        sentiment_by_topic.to_csv(topic_sentiment_path, index=False)
-        print(f"Saved topic sentiment distribution to {topic_sentiment_path}")
+            topic_sentiment_path = os.path.join(output_dir, f"{name}_topic_sentiment.csv")
+            sentiment_by_topic.to_csv(topic_sentiment_path, index=False)
+            print(f"Saved topic sentiment distribution to {topic_sentiment_path}")
+        else:
+             print("Warning: 'sentiment' column not found in input data. Skipping Topic-Sentiment analysis.")
+
 
         # Extract topic-term-relevance for potential aspect extraction later
         # These are the terms that define each topic
