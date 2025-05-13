@@ -1,0 +1,80 @@
+===================================
+ ABSA Pilot Model Evaluation Summary
+===================================
+
+Date: 2025-05-12 16:02:45.526602
+Annotated data file: alexa_absa_pilot_annotation.csv
+Total samples in annotated file: 100
+Note: Evaluation metrics calculated only on samples where prediction was successful 
+      (not 'Error') and the target aspect was found (not 'Not Found' for joint models),
+      and the manual label was one of ['Positive', 'Negative', 'Neutral'].
+===================================
+
+--- Model: distilbert-base-uncased-finetuned-sst-2-english (Sentence) ---
+Evaluated Samples: 100/100
+Accuracy (on evaluated): 0.8300
+Weighted F1-Score (on evaluated): 0.7854
+Classification Report (on evaluated samples):
+              precision    recall  f1-score   support
+
+    Negative      0.819     0.967     0.887        61
+     Neutral      0.000     0.000     0.000        10
+    Positive      0.857     0.828     0.842        29
+
+    accuracy                          0.830       100
+   macro avg      0.559     0.598     0.576       100
+weighted avg      0.748     0.830     0.785       100
+
+-----------------------------------
+
+--- Model: DeBERTa ABSA (yangheng/deberta-v3-base-absa-v1.1) ---
+Evaluated Samples: 100/100
+Accuracy (on evaluated): 0.7900
+Weighted F1-Score (on evaluated): 0.7765
+Classification Report (on evaluated samples):
+              precision    recall  f1-score   support
+
+    Negative      0.850     0.836     0.843        61
+     Neutral      0.400     0.200     0.267        10
+    Positive      0.743     0.897     0.812        29
+
+    accuracy                          0.790       100
+   macro avg      0.664     0.644     0.641       100
+weighted avg      0.774     0.790     0.777       100
+
+-----------------------------------
+
+--- Model: Zero-Shot NLI (facebook/bart-large-mnli) ---
+Evaluated Samples: 100/100
+Accuracy (on evaluated): 0.8000
+Weighted F1-Score (on evaluated): 0.7597
+Classification Report (on evaluated samples):
+              precision    recall  f1-score   support
+
+    Negative      0.867     0.852     0.860        61
+     Neutral      0.000     0.000     0.000        10
+    Positive      0.700     0.966     0.812        29
+
+    accuracy                          0.800       100
+   macro avg      0.522     0.606     0.557       100
+weighted avg      0.732     0.800     0.760       100
+
+-----------------------------------
+
+--- Model: VADER (Sentence) ---
+Evaluated Samples: 100/100
+Accuracy (on evaluated): 0.6300
+Weighted F1-Score (on evaluated): 0.6402
+Classification Report (on evaluated samples):
+              precision    recall  f1-score   support
+
+    Negative      0.897     0.574     0.700        61
+     Neutral      0.154     0.200     0.174        10
+    Positive      0.542     0.897     0.675        29
+
+    accuracy                          0.630       100
+   macro avg      0.531     0.557     0.516       100
+weighted avg      0.720     0.630     0.640       100
+
+-----------------------------------
+

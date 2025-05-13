@@ -1,0 +1,40 @@
+ABSA Pilot Model Evaluation Summary
+===================================
+
+Annotated data file: alexa_absa_pilot_annotation.csv
+Number of samples in annotated file: 100
+Note: Evaluation metrics calculated only on samples where prediction was successful and not 'Not Found'.
+===================================
+
+--- distilbert-base-uncased-finetuned-sst-2-english (Sentence) ---
+Accuracy: 0.830
+Weighted F1-Score: 0.785
+Classification Report:
+              precision    recall  f1-score   support
+
+    Negative      0.819     0.967     0.887        61
+     Neutral      0.000     0.000     0.000        10
+    Positive      0.857     0.828     0.842        29
+
+    accuracy                          0.830       100
+   macro avg      0.559     0.598     0.576       100
+weighted avg      0.748     0.830     0.785       100
+
+-----------------------------------
+
+--- VADER (Sentence) ---
+Accuracy: 0.630
+Weighted F1-Score: 0.640
+Classification Report:
+              precision    recall  f1-score   support
+
+    Negative      0.897     0.574     0.700        61
+     Neutral      0.154     0.200     0.174        10
+    Positive      0.542     0.897     0.675        29
+
+    accuracy                          0.630       100
+   macro avg      0.531     0.557     0.516       100
+weighted avg      0.720     0.630     0.640       100
+
+-----------------------------------
+
