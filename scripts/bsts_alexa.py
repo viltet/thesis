@@ -7,19 +7,23 @@ import os
 
 # --- 1. Configuration ---
 try:
-    BASE_DIR = Path(__file__).resolve().parent
+    SCRIPT_DIR = Path(__file__).resolve().parent # Directory of the current script (scripts/)
+    PROJECT_ROOT_DIR = SCRIPT_DIR.parent        # Go up one level to the main 'thesis' folder
 except NameError:
-    BASE_DIR = Path.cwd() # Fallback for interactive environments
+    # Fallback for interactive environments - assumes you run from project root or scripts folder
+    # This might need adjustment if running interactively from an unexpected location
+    PROJECT_ROOT_DIR = Path.cwd()
+    if PROJECT_ROOT_DIR.name == "scripts": # If cwd is scripts, go up
+        PROJECT_ROOT_DIR = PROJECT_ROOT_DIR.parent
 
-RESULTS_DIR = BASE_DIR / "results"
-ALEXA_BSTS_OUTPUT_DIR = RESULTS_DIR / "bsts_outputs" / "alexa"
+
+RESULTS_DIR = PROJECT_ROOT_DIR / "results"  # Now points to thesis/results/
+ALEXA_BSTS_OUTPUT_DIR = RESULTS_DIR / "bsts_outputs" / "alexa" # This will now be thesis/results/bsts_outputs/alexa/
 ALEXA_BSTS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 ASSISTANT_NAME = "alexa"
 
 # --- Alexa's Intervention Events (from Thesis Figure 1, within approx. Oct 2017 - Mar 2025 data range) ---
-# Please VERIFY these dates against your primary sources.
-# If a date is an estimate (e.g., mid-month), try to find the exact announcement/rollout day.
 ALEXA_INTERVENTION_EVENTS = [
     {
         # Original: October 2018 (Liao, 2018 -> The Verge, Sept 20, 2018 announcement)
@@ -116,11 +120,16 @@ def load_and_prepare_data(assistant_name_func, data_dir_func, agg_period_func, s
     return ts_data.rename(f"{assistant_name_func}_sentiment")
 
 
+# Set the Matplotlib backend to a non-interactive one
+# This helps prevent the "figure cannot be displayed" errors in non-GUI environments
+plt.switch_backend('agg')
+
 # --- Main Processing Logic ---
 print(f"--- Starting BSTS Analysis for {ASSISTANT_NAME.upper()} ---")
-print(f"Base directory: {BASE_DIR}")
-print(f"Results directory: {RESULTS_DIR}")
-print(f"Alexa BSTS Output directory: {ALEXA_BSTS_OUTPUT_DIR}\n")
+print(f"Project Root directory: {PROJECT_ROOT_DIR}") 
+print(f"Results directory (input for sentiment data): {RESULTS_DIR}")
+print(f"Alexa BSTS Output directory (for plots/summaries): {ALEXA_BSTS_OUTPUT_DIR}\n")
+
 
 alexa_ts_data_full = load_and_prepare_data(ASSISTANT_NAME, RESULTS_DIR, AGGREGATION_PERIOD, SENTIMENT_AGGREGATION_METRIC)
 google_ts_data_full = None
@@ -222,11 +231,10 @@ else:
         
         try:
             print(f"Running CausalImpact for {event_name}...")
-            # The impact_data DataFrame should contain the outcome variable as the first column,
-            # and any covariates as subsequent columns.
-            # If impact_data only has one column (y), it works fine.
+            # Use the DataFrame 'impact_data' which holds your outcome and covariates
             ci = CausalImpact(impact_data, pre_period_for_ci, post_period_for_ci)
 
+            # --- Save Summary FIRST ---
             summary_filename = ALEXA_BSTS_OUTPUT_DIR / f"{event_name}_summary.txt"
             with open(summary_filename, "w") as f:
                 f.write(f"Causal Impact Analysis Summary for Event: {event_name}\n")
@@ -242,18 +250,52 @@ else:
                 f.write(ci.summary(output='report'))
             print(f"Summary saved to {summary_filename}")
 
+            # --- Handle Plotting Manually --- 
             plot_filename = ALEXA_BSTS_OUTPUT_DIR / f"{event_name}_plot.png"
-            fig = ci.plot(figsize=(15, 12))
-            fig.suptitle(f"Causal Impact: {event_name} on {ASSISTANT_NAME.upper()} Sentiment ({SENTIMENT_AGGREGATION_METRIC})", fontsize=16)
-            fig.tight_layout(rect=[0, 0.03, 1, 0.97])
-            plt.savefig(plot_filename)
-            print(f"Plot saved to {plot_filename}")
-            plt.close(fig)
-
+            print(f"Generating and saving plot to {plot_filename}...")
+            
+            try:
+                # Create a new figure with subplots manually
+                fig, axes = plt.subplots(3, 1, figsize=(15, 12), sharex=True)
+                
+                # Get the data from CausalImpact result
+                data = ci.data
+                
+                # 1. Original and Counterfactual Predictions
+                axes[0].plot(data.index, data.iloc[:, 0], 'k-', label='Original')
+                axes[0].plot(data.index, data.iloc[:, 1], 'b--', label='Counterfactual Prediction')
+                axes[0].axvline(x=pd.to_datetime(pre_period_for_ci[1]), color='gray', linestyle='--')
+                axes[0].legend()
+                axes[0].set_title('Original and Counterfactual Prediction')
+                
+                # 2. Pointwise Effects
+                pointwise = data.iloc[:, 0] - data.iloc[:, 1]
+                axes[1].plot(data.index, pointwise, 'b-')
+                axes[1].axvline(x=pd.to_datetime(pre_period_for_ci[1]), color='gray', linestyle='--')
+                axes[1].axhline(y=0, color='gray', linestyle='-')
+                axes[1].set_title('Pointwise Effects')
+                
+                # 3. Cumulative Effect
+                cumulative = pointwise.cumsum()
+                axes[2].plot(data.index, cumulative, 'b-')
+                axes[2].axvline(x=pd.to_datetime(pre_period_for_ci[1]), color='gray', linestyle='--')
+                axes[2].axhline(y=0, color='gray', linestyle='-')
+                axes[2].set_title('Cumulative Effect')
+                
+                # Add overall title
+                fig.suptitle(f"Causal Impact: {event_name} on {ASSISTANT_NAME.upper()} Sentiment ({SENTIMENT_AGGREGATION_METRIC})", 
+                             fontsize=16)
+                
+                # Adjust layout and save
+                fig.tight_layout(rect=[0, 0.03, 1, 0.97])
+                plt.savefig(plot_filename)
+                plt.close(fig)
+                print(f"Plot saved to {plot_filename}")
+                
+            except Exception as plot_e:
+                print(f"Error during custom plot generation for {event_name}: {plot_e}")
+                
             print(f"Successfully processed event: {event_name}")
 
         except Exception as e:
             print(f"Error during CausalImpact analysis for {event_name}: {e}")
-            print("This could be due to various issues like insufficient data, model non-convergence, or data properties.")
-
-print(f"\n--- Alexa BSTS analysis complete. Check the '{ALEXA_BSTS_OUTPUT_DIR}' folder. ---")
