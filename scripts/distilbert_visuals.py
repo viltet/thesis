@@ -101,6 +101,9 @@ for name, path in input_files.items():
                 ax1.plot(quarterly_sentiment_prop.index, quarterly_sentiment_prop[sentiment], 
                         color=sentiment_colors[sentiment], linewidth=2, alpha=0.9)
 
+# Convert PeriodIndex to Timestamps for plotting absolute counts
+        quarterly_sentiment.index = quarterly_sentiment.index.to_timestamp() # ADD THIS LINE
+
         # 2. Absolute counts
         ax2.plot(quarterly_sentiment.index, quarterly_sentiment['positive'], 
                 color=sentiment_colors['positive'], marker='o', label='Positive', linewidth=2.5)
