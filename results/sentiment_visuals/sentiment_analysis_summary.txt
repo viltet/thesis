@@ -1,0 +1,27 @@
+SENTIMENT ANALYSIS SUMMARY
+==================================================
+
+ALEXA STATISTICS:
+Total reviews: 141,067
+Date range: 2017-10-01 to 2025-03-30
+Sentiment distribution:
+  Negative: 83,612 (59.3%)
+  Positive: 53,652 (38.0%)
+  Neutral: 3,803 (2.7%)
+Average sentiment score: -0.212
+Sentiment score std: 0.963
+
+------------------------------
+
+GOOGLE STATISTICS:
+Total reviews: 70,252
+Date range: 2017-10-04 to 2025-03-30
+Sentiment distribution:
+  Negative: 46,976 (66.9%)
+  Positive: 21,300 (30.3%)
+  Neutral: 1,976 (2.8%)
+Average sentiment score: -0.365
+Sentiment score std: 0.916
+
+------------------------------
+
