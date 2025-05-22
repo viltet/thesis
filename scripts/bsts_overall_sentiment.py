@@ -16,54 +16,40 @@ except NameError:
     if PROJECT_ROOT_DIR.name == "scripts": # If cwd is scripts, go up
         PROJECT_ROOT_DIR = PROJECT_ROOT_DIR.parent
 
-
 RESULTS_DIR = PROJECT_ROOT_DIR / "results"  # Now points to thesis/results/
-ALEXA_BSTS_OUTPUT_DIR = RESULTS_DIR / "bsts_outputs" / "alexa" # This will now be thesis/results/bsts_outputs/alexa/
-ALEXA_BSTS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+BSTS_OUTPUT_DIR = RESULTS_DIR / "bsts_outputs" / "overall_sentiment" # This will now be thesis/results/bsts_outputs/overall_sentiment/
+BSTS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-ASSISTANT_NAME = "alexa"
+# Choose which assistant to analyze: "alexa" or "google"
+ASSISTANT_NAME_TO_ANALYZE = "google"  
 
-# --- Alexa's Intervention Events (from Thesis Figure 1, within approx. Oct 2017 - Mar 2025 data range) ---
-ALEXA_INTERVENTION_EVENTS = [
-    {
-        # Original: October 2018 (Liao, 2018 -> The Verge, Sept 20, 2018 announcement)
-        "name": "Alexa_Hunches_Introduction_Sep2018",
-        "date": "2018-09-20"
-    },
-    {
-        # Original: December 2018 (Heater, 2018 -> TechCrunch, Dec 20, 2018)
-        "name": "Alexa_Wolfram_Alpha_Integration_Dec2018",
-        "date": "2018-12-20"
-    },
-    {
-        # Original: September 2019 (Amazon, n.d. -> Amazon announcement Sept 25, 2019)
-        "name": "Alexa_Privacy_Hub_Launched_Sep2019",
-        "date": "2019-09-25"
-    },
-    {
-        # Original: June 2020 (Roland-C, 2020a) - Table says June 2020.
-        # Using mid-month as placeholder; try to find a more precise rollout date if possible.
-        "name": "Alexa_Reminders_Across_Devices_Jun2020",
-        "date": "2020-06-15" # Placeholder: Verify exact date
-    },
-    {
-        # Original: January 2021 (Campbell, 2021 -> The Verge, Jan 25, 2021)
-        "name": "Alexa_Proactive_Hunches_Guard_Plus_Jan2021",
-        "date": "2021-01-25"
-    },
-    {
-        # Original: September 2023 (Chen, 2023 -> aboutamazon.com, Sept 20, 2023)
-        "name": "Alexa_Smarter_Alexa_New_Echo_Show_Sep2023",
-        "date": "2023-09-20"
-    },
-    {
-        # Original: February 2025 (Panay, 2025 -> aboutamazon.com, Feb 26, 2025)
-        # Note: Data collection ends March 2025. Post-period will be very short.
-        "name": "Alexa_Plus_Launch_Feb2025",
-        "date": "2025-02-26"
-    }
-    # Add any other relevant Alexa-specific events here
-]
+# --- Intervention Events ---
+if ASSISTANT_NAME_TO_ANALYZE == "alexa":
+    INTERVENTION_EVENTS = [
+        {"name": "Alexa_Hunches_Introduction_Sep2018", "date": "2018-09-20"},
+        {"name": "Alexa_Wolfram_Alpha_Integration_Dec2018", "date": "2018-12-20"},
+        {"name": "Alexa_Privacy_Hub_Launched_Sep2019", "date": "2019-09-25"},
+        {"name": "Alexa_Reminders_Across_Devices_Jun2020", "date": "2020-06-15"}, # Verify exact date
+        {"name": "Alexa_Proactive_Hunches_Guard_Plus_Jan2021", "date": "2021-01-25"},
+        {"name": "Alexa_Smarter_Alexa_New_Echo_Show_Sep2023", "date": "2023-09-20"},
+        {"name": "Alexa_Plus_Launch_Feb2025", "date": "2025-02-26"} # Note: Data ends Mar 2025
+    ]
+elif ASSISTANT_NAME_TO_ANALYZE == "google":
+    INTERVENTION_EVENTS = [
+        # From your thesis draft Figure 2 (ensure dates are as precise as possible)
+        # Data collection starts Oct 2017, so May 2016 event is out of range.
+        {"name": "Google_Additional_Languages_Routines_Feb2018", "date": "2018-02-07"}, # Source: Devicebase, 2023a
+        {"name": "Google_Duplex_Announced_May2018", "date": "2018-05-08"},       # Source: Google, 2018
+        {"name": "Google_New_Features_Update_Nov2018", "date": "2018-11-15"},    # Source: Devicebase, 2023b (Using mid-month for Nov)
+        {"name": "Google_Interpreter_Mode_Dec2019", "date": "2019-12-12"},       # Source: Byford, 2019
+        {"name": "Google_Voice_Match_Expansion_Jun2020", "date": "2020-06-15"},  # Source: Roland-C, 2020b (Using mid-month for June)
+        {"name": "Google_Simple_Nest_Hub_Features_Jun2020", "date": "2020-06-20"},# Source: Roland-C, 2020c (Using a slightly later date in June to differentiate)
+        {"name": "Google_iOS_Fixes_Stability_Dec2021", "date": "2021-12-15"},    # Source: Roland-C, 2022a (Using mid-month for Dec)
+        {"name": "Google_Shortcuts_Plus_Expanded_Support_May2022", "date": "2022-05-03"}, # Source: Devicebase, 2022
+        {"name": "Google_Smart_Assistant_Improvements_Mar2023", "date": "2023-03-15"},# Source: Devicebase, 2023c (Using mid-month for Mar)
+        {"name": "Google_Gemini_Assistant_Nest_Dec2024", "date": "2024-12-13"}  # Source: Tuohy, 2024
+        # Data collection ends March 2025.
+    ]
 
 # Time series aggregation period
 AGGREGATION_PERIOD = "W-MON"  # Weekly, starting Mondays
@@ -71,7 +57,7 @@ AGGREGATION_PERIOD = "W-MON"  # Weekly, starting Mondays
 # Sentiment metric for aggregation
 SENTIMENT_AGGREGATION_METRIC = 'mean_score' # Options: 'mean_score', 'prop_positive', 'prop_negative', 'net_sentiment'
 
-# Use Google Assistant's sentiment as a covariate?
+# Use the other assistant's sentiment as a covariate?
 USE_OTHER_ASSISTANT_AS_COVARIATE = True
 # --- End of Configuration ---
 
@@ -125,54 +111,56 @@ def load_and_prepare_data(assistant_name_func, data_dir_func, agg_period_func, s
 plt.switch_backend('agg')
 
 # --- Main Processing Logic ---
-print(f"--- Starting BSTS Analysis for {ASSISTANT_NAME.upper()} ---")
+print(f"--- Starting BSTS Analysis for {ASSISTANT_NAME_TO_ANALYZE.upper()} ---")
 print(f"Project Root directory: {PROJECT_ROOT_DIR}") 
 print(f"Results directory (input for sentiment data): {RESULTS_DIR}")
-print(f"Alexa BSTS Output directory (for plots/summaries): {ALEXA_BSTS_OUTPUT_DIR}\n")
+print(f"BSTS Output directory (for plots/summaries): {BSTS_OUTPUT_DIR}\n")
 
+# Load data for the assistant being analyzed
+main_ts_data_full = load_and_prepare_data(ASSISTANT_NAME_TO_ANALYZE, RESULTS_DIR, AGGREGATION_PERIOD, SENTIMENT_AGGREGATION_METRIC)
 
-alexa_ts_data_full = load_and_prepare_data(ASSISTANT_NAME, RESULTS_DIR, AGGREGATION_PERIOD, SENTIMENT_AGGREGATION_METRIC)
-google_ts_data_full = None
+# Load data for the other assistant as covariate if requested
+other_assistant_name = "google" if ASSISTANT_NAME_TO_ANALYZE == "alexa" else "alexa"
+other_ts_data_full = None
 
 if USE_OTHER_ASSISTANT_AS_COVARIATE:
-    google_ts_data_full = load_and_prepare_data("google", RESULTS_DIR, AGGREGATION_PERIOD, SENTIMENT_AGGREGATION_METRIC)
+    other_ts_data_full = load_and_prepare_data(other_assistant_name, RESULTS_DIR, AGGREGATION_PERIOD, SENTIMENT_AGGREGATION_METRIC)
 
-if alexa_ts_data_full is None or alexa_ts_data_full.empty:
-    print(f"Critical Error: Alexa time series data could not be loaded or is empty. Aborting analysis.")
+if main_ts_data_full is None or main_ts_data_full.empty:
+    print(f"Critical Error: {ASSISTANT_NAME_TO_ANALYZE.title()} time series data could not be loaded or is empty. Aborting analysis.")
 else:
-    for event in ALEXA_INTERVENTION_EVENTS:
+    for event in INTERVENTION_EVENTS:
         event_name = event["name"]
         intervention_date_str = event["date"]
 
-        print(f"\n--- Analyzing Event for Alexa: {event_name} (Date: {intervention_date_str}) ---")
+        print(f"\n--- Analyzing Event for {ASSISTANT_NAME_TO_ANALYZE.title()}: {event_name} (Date: {intervention_date_str}) ---")
 
-        y = alexa_ts_data_full.copy()
+        y = main_ts_data_full.copy()
         impact_data = y.to_frame()
         covariate_names = []
 
-        if USE_OTHER_ASSISTANT_AS_COVARIATE and google_ts_data_full is not None and not google_ts_data_full.empty:
-            # Align Google's data with Alexa's timeline using reindex and fill missing values
+        if USE_OTHER_ASSISTANT_AS_COVARIATE and other_ts_data_full is not None and not other_ts_data_full.empty:
+            # Align other assistant's data with main assistant's timeline using reindex and fill missing values
             # Ensure indices are compatible.
-            if not y.index.equals(google_ts_data_full.index):
-                 print("Aligning covariate index with outcome variable index...")
+            if not y.index.equals(other_ts_data_full.index):
+                 print(f"Aligning {other_assistant_name} covariate index with {ASSISTANT_NAME_TO_ANALYZE} outcome variable index...")
                  # Create a union of both indices to ensure full coverage
                  # Then reindex both series to this union index before further processing
-                 common_index = y.index.union(google_ts_data_full.index)
+                 common_index = y.index.union(other_ts_data_full.index)
                  y_aligned = y.reindex(common_index).ffill().bfill() # Reindex y first
                  impact_data = y_aligned.to_frame() # Use aligned y for impact_data
-                 aligned_covariate = google_ts_data_full.reindex(common_index).ffill().bfill()
+                 aligned_covariate = other_ts_data_full.reindex(common_index).ffill().bfill()
                  # Only keep covariate data for the range of y_aligned
                  aligned_covariate = aligned_covariate[y_aligned.index]
             else: # Indices are already the same
-                 aligned_covariate = google_ts_data_full
+                 aligned_covariate = other_ts_data_full
                  impact_data = y.to_frame() # y is already correctly indexed
 
-            impact_data['google_sentiment_covariate'] = aligned_covariate
-            covariate_names.append('google_sentiment_covariate')
-            print("Using Google sentiment as a covariate.")
+            impact_data[f'{other_assistant_name}_sentiment_covariate'] = aligned_covariate
+            covariate_names.append(f'{other_assistant_name}_sentiment_covariate')
+            print(f"Using {other_assistant_name.title()} sentiment as a covariate.")
         elif USE_OTHER_ASSISTANT_AS_COVARIATE:
-             print("Google sentiment data not available or empty. Proceeding without covariate for this event.")
-
+             print(f"{other_assistant_name.title()} sentiment data not available or empty. Proceeding without covariate for this event.")
 
         intervention_timestamp = pd.to_datetime(intervention_date_str)
 
@@ -216,7 +204,6 @@ else:
             print(f"Insufficient data points for robust analysis. Pre-period has {pre_period_end_loc + 1}, Post-period has {len(impact_data.index) - post_period_start_loc}. Need at least {min_period_points}. Skipping event.")
             continue
 
-
         pre_period_for_ci = [str(pre_period_start_date.date()), str(pre_period_end_date.date())]
         post_period_for_ci = [str(post_period_start_date.date()), str(post_period_end_date.date())]
 
@@ -235,11 +222,11 @@ else:
             ci = CausalImpact(impact_data, pre_period_for_ci, post_period_for_ci)
 
             # --- Save Summary FIRST ---
-            summary_filename = ALEXA_BSTS_OUTPUT_DIR / f"{event_name}_summary.txt"
+            summary_filename = BSTS_OUTPUT_DIR / f"{ASSISTANT_NAME_TO_ANALYZE}_{event_name}_summary.txt"
             with open(summary_filename, "w") as f:
                 f.write(f"Causal Impact Analysis Summary for Event: {event_name}\n")
                 f.write(f"Intervention Date: {intervention_date_str}\n")
-                f.write(f"Assistant Analyzed: {ASSISTANT_NAME.upper()}\n")
+                f.write(f"Assistant Analyzed: {ASSISTANT_NAME_TO_ANALYZE.upper()}\n")
                 f.write(f"Aggregation Period: {AGGREGATION_PERIOD}\n")
                 f.write(f"Sentiment Metric: {SENTIMENT_AGGREGATION_METRIC}\n")
                 f.write(f"Covariates Used: {', '.join(covariate_names) if covariate_names else 'None'}\n")
@@ -251,7 +238,7 @@ else:
             print(f"Summary saved to {summary_filename}")
 
             # --- Handle Plotting Manually --- 
-            plot_filename = ALEXA_BSTS_OUTPUT_DIR / f"{event_name}_plot.png"
+            plot_filename = BSTS_OUTPUT_DIR / f"{ASSISTANT_NAME_TO_ANALYZE}_{event_name}_plot.png"
             print(f"Generating and saving plot to {plot_filename}...")
             
             try:
@@ -283,7 +270,7 @@ else:
                 axes[2].set_title('Cumulative Effect')
                 
                 # Add overall title
-                fig.suptitle(f"Causal Impact: {event_name} on {ASSISTANT_NAME.upper()} Sentiment ({SENTIMENT_AGGREGATION_METRIC})", 
+                fig.suptitle(f"Causal Impact: {event_name} on {ASSISTANT_NAME_TO_ANALYZE.upper()} Overall Sentiment ({SENTIMENT_AGGREGATION_METRIC})", 
                              fontsize=16)
                 
                 # Adjust layout and save
@@ -299,3 +286,6 @@ else:
 
         except Exception as e:
             print(f"Error during CausalImpact analysis for {event_name}: {e}")
+
+print(f"\n--- BSTS Analysis for {ASSISTANT_NAME_TO_ANALYZE.upper()} Overall Sentiment Complete ---")
+print(f"Results saved to: {BSTS_OUTPUT_DIR}")
