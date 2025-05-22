@@ -107,7 +107,6 @@ def load_and_prepare_data(assistant_name_func, data_dir_func, agg_period_func, s
 
 
 # Set the Matplotlib backend to a non-interactive one
-# This helps prevent the "figure cannot be displayed" errors in non-GUI environments
 plt.switch_backend('agg')
 
 # --- Main Processing Logic ---
