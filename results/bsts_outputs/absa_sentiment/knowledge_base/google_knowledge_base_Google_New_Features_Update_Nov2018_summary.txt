@@ -1,0 +1,64 @@
+Causal Impact Analysis Summary for Event: Google_New_Features_Update_Nov2018
+Intervention Date: 2018-11-15
+Assistant Analyzed: GOOGLE
+Aspect Analyzed: Knowledge Base
+Aggregation Period: W-MON
+Sentiment Metric: mean_score
+Covariates Used: alexa_knowledge_base_cov, google_overall_sentiment_cov
+--------------------------------------------------
+Posterior Inference {Causal Impact}
+                          Average            Cumulative
+Actual                    -0.39              -129.4
+Prediction (s.d.)         -0.25 (0.06)       -83.93 (20.05)
+95% CI                    [-0.38, -0.14]     [-125.44, -46.84]
+
+Absolute effect (s.d.)    -0.14 (0.06)       -45.46 (20.05)
+95% CI                    [-0.25, -0.01]     [-82.56, -3.96]
+
+Relative effect (s.d.)    54.17% (23.89%)    54.17% (23.89%)
+95% CI                    [4.71%, 98.36%]    [4.71%, 98.36%]
+
+Posterior tail-area probability p: 0.02
+Posterior prob. of a causal effect: 98.4%
+
+For more details run the command: print(impact.summary('report'))
+--------------------------------------------------
+Full Report:
+Analysis report {CausalImpact}
+
+
+During the post-intervention period, the response variable had
+an average value of approx. -0.39. By contrast, in the absence of an
+intervention, we would have expected an average response of -0.25.
+The 95% interval of this counterfactual prediction is [-0.38, -0.14].
+Subtracting this prediction from the observed response yields
+an estimate of the causal effect the intervention had on the
+response variable. This effect is -0.14 with a 95% interval of
+[-0.25, -0.01]. For a discussion of the significance of this effect,
+see below.
+
+
+Summing up the individual data points during the post-intervention
+period (which can only sometimes be meaningfully interpreted), the
+response variable had an overall value of -129.4.
+By contrast, had the intervention not taken place, we would have expected
+a sum of -83.93. The 95% interval of this prediction is [-125.44, -46.84].
+
+
+The above results are given in terms of absolute numbers. In relative
+terms, the response variable showed an increase of +54.17%. The 95%
+interval of this percentage is [4.71%, 98.36%].
+
+
+This means that the positive effect observed during the intervention
+period is statistically significant and unlikely to be due to random
+fluctuations. It should be noted, however, that the question of whether
+this increase also bears substantive significance can only be answered
+by comparing the absolute effect (-0.14) to the original goal
+of the underlying intervention.
+
+
+The probability of obtaining this effect by chance is very small
+(Bayesian one-sided tail-area probability p = 0.02).
+This means the causal effect can be considered statistically
+significant.
