@@ -20,7 +20,7 @@ BSTS_OUTPUT_DIR = RESULTS_DIR / "bsts_outputs" / "absa_sentiment" # This will no
 BSTS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # Choose which assistant to analyze: "alexa" or "google"
-ASSISTANT_NAME_TO_ANALYZE = "alexa"  # Change this to "google" to analyze Google Assistant
+ASSISTANT_NAME_TO_ANALYZE = "google"  
 
 # Choose which aspect to analyze (or set to None to analyze all aspects found in the file)
 # Example: "Functionality & Performance", "Voice Recognition", "Privacy & Security", etc.
@@ -30,8 +30,8 @@ ASPECT_TO_ANALYZE = None # "Functionality & Performance" # Example: Set to a spe
 
 # --- ABSA Data File Mapping ---
 ABSA_FILE_MAPPING = {
-    "alexa": "absa_full_results_colab/alexa_full_absa_sentiments_colab.csv", # <-- Include the subdirectory here
-    "google": "absa_full_results_colab/google_full_absa_sentiments_colab_COMBINED.csv" # <-- Include the subdirectory here
+    "alexa": "absa_full_results_colab/alexa_full_absa_sentiments_colab.csv", 
+    "google": "absa_full_results_colab/google_full_absa_sentiments_colab_COMBINED.csv" 
 }
 
 # --- Intervention Events ---
