@@ -1,0 +1,63 @@
+Causal Impact Analysis Summary for Event: Alexa_Reminders_Across_Devices_Jun2020
+Intervention Date: 2020-06-15
+Assistant Analyzed: ALEXA
+Aspect Analyzed: Usability & Interface
+Aggregation Period: W-MON
+Sentiment Metric: mean_score
+Covariates Used: google_usability_and_interface_cov, alexa_overall_sentiment_cov
+--------------------------------------------------
+Posterior Inference {Causal Impact}
+                          Average            Cumulative
+Actual                    -0.1               -25.06
+Prediction (s.d.)         -0.11 (0.05)       -26.8 (13.75)
+95% CI                    [-0.2, 0.01]       [-50.92, 2.98]
+
+Absolute effect (s.d.)    0.01 (0.05)        1.74 (13.75)
+95% CI                    [-0.11, 0.1]       [-28.03, 25.86]
+
+Relative effect (s.d.)    -6.49% (51.3%)     -6.49% (51.3%)
+95% CI                    [-96.5%, 104.61%]  [-96.5%, 104.61%]
+
+Posterior tail-area probability p: 0.43
+Posterior prob. of a causal effect: 57.04%
+
+For more details run the command: print(impact.summary('report'))
+--------------------------------------------------
+Full Report:
+Analysis report {CausalImpact}
+
+
+During the post-intervention period, the response variable had
+an average value of approx. -0.1. By contrast, in the absence of an
+intervention, we would have expected an average response of -0.11.
+The 95% interval of this counterfactual prediction is [-0.2, 0.01].
+Subtracting this prediction from the observed response yields
+an estimate of the causal effect the intervention had on the
+response variable. This effect is 0.01 with a 95% interval of
+[-0.11, 0.1]. For a discussion of the significance of this effect,
+see below.
+
+
+Summing up the individual data points during the post-intervention
+period (which can only sometimes be meaningfully interpreted), the
+response variable had an overall value of -25.06.
+By contrast, had the intervention not taken place, we would have expected
+a sum of -26.8. The 95% interval of this prediction is [-50.92, 2.98].
+
+
+The above results are given in terms of absolute numbers. In relative
+terms, the response variable showed a decrease of -6.49%. The 95%
+interval of this percentage is [-96.5%, 104.61%].
+
+
+This means that the negative effect observed during the intervention
+period is statistically significant.
+If the experimenter had expected a positive effect, it is recommended
+to double-check whether anomalies in the control variables may have
+caused an overly optimistic expectation of what should have happened
+in the response variable in the absence of the intervention.
+
+
+The probability of obtaining this effect by chance is p = 42.96%.
+This means the effect may be spurious and would generally not be
+considered statistically significant.
