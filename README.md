@@ -69,7 +69,7 @@ Initial analysis of review volume, rating distributions, and text characteristic
     * Causal impact analysis (BSTS model summaries and plots).
     * Visualizations (graphs, charts, word clouds) for EDA, sentiment trends, topic evolution, and ABSA.
     * Outputs from pilot testing and model comparison experiments.
-    * Specific subdirectories like `absa_pilot/`, `absa_results/`, `absa_visuals_local_all_aspects/`, `bsts_outputs/` (with `absa_sentiment/` and `overall_sentiment/` subfolders), `model_comparison/`, `sentiment_visuals/`, `topic_model_comparison/`, `topic_models/` indicate a well-organized output structure.
+    * Specific subdirectories like `absa_pilot/`, `absa_results/`, `absa_visuals_local_all_aspects/`, `bsts_outputs/` (with `absa_sentiment/` and `overall_sentiment/` subfolders), `model_comparison/`, `sentiment_visuals/`, `topic_model_comparison/`, `topic_models/'.
 
 **scripts/**
 * Contains all Python scripts and Jupyter notebooks used for data collection, preprocessing, analysis, and visualization.
