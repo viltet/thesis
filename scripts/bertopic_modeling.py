@@ -48,23 +48,26 @@ else:
 print("Loading Sentence Transformer model...")
 embedding_model = SentenceTransformer('all-MiniLM-L6-v2', device=device)
 
+# --- Optimized BERTopic Parameters ---
+OPTIMIZED_PARAMS = {
+    "alexa": {"min_cluster_size": 30, "min_samples": 5},
+    "google": {"min_cluster_size": 20, "min_samples": 10}
+}
 
-# Configure BERTopic parameters
-vectorizer_model = CountVectorizer(stop_words="english",
-                                  min_df=10,
-                                  ngram_range=(1, 2))
+# --- Shared UMAP Configuration (was fixed during optimization) ---
+umap_model_config = UMAP(n_neighbors=15,
+                         n_components=5,
+                         min_dist=0.0,
+                         metric='cosine',
+                         random_state=42,
+                         low_memory=True) # Added low_memory from robust script
 
-umap_model = UMAP(n_neighbors=15,
-                 n_components=5,
-                 min_dist=0.0,
-                 metric='cosine',
-                 random_state=42)
-
-hdbscan_model = HDBSCAN(min_cluster_size=30,
-                       min_samples=10,
-                       metric='euclidean',
-                       gen_min_span_tree=True,
-                       prediction_data=True)
+# --- Shared CountVectorizer Configuration (adjust min_df if needed, add max_df) ---
+# For full dataset, a fixed min_df is reasonable. max_df from optimization.
+vectorizer_model_config = CountVectorizer(stop_words="english",
+                                          min_df=10, # A reasonable min_df for full datasets
+                                          max_df=0.95, # From robust optimization script
+                                          ngram_range=(1, 2))
 
 
 # --- Processing each dataset ---
@@ -87,9 +90,12 @@ for name, path in input_files.items():
 
         df.dropna(subset=['at', 'clean_content'], inplace=True)
         df = df[df['clean_content'].astype(str).str.strip() != '']
+        # Filter for docs with a minimum length, e.g., more than 3 words
+        df = df[df['clean_content'].astype(str).apply(lambda x: len(x.split()) > 3)]
+
 
         if df.empty:
-            print(f"Warning: No valid reviews with content and dates found after parsing in {path}. Skipping {name}.")
+            print(f"Warning: No valid reviews with content and dates found after parsing and filtering in {path}. Skipping {name}.")
             continue
 
         print(f"Loaded and cleaned {len(df)} valid reviews for {name}.")
@@ -97,18 +103,38 @@ for name, path in input_files.items():
         df_sorted = df.sort_values('at').reset_index(drop=True)
         docs_for_fitting = df_sorted['clean_content'].astype(str).tolist()
 
+        # --- Configure HDBSCAN dynamically based on optimized parameters ---
+        if name in OPTIMIZED_PARAMS:
+            hdbscan_params = OPTIMIZED_PARAMS[name]
+            print(f"Using optimized HDBSCAN parameters for {name}: {hdbscan_params}")
+            current_hdbscan_model = HDBSCAN(min_cluster_size=hdbscan_params["min_cluster_size"],
+                                           min_samples=hdbscan_params["min_samples"],
+                                           metric='euclidean',
+                                           gen_min_span_tree=True,
+                                           prediction_data=True, # Keep True if you plan to use predict later
+                                           # core_dist_n_jobs=-1 # Use all available CPUs for HDBSCAN if it's slow
+                                           )
+        else:
+            print(f"Warning: Optimized parameters not found for {name}. Using default HDBSCAN settings.")
+            # Fallback to some default if needed, or skip
+            current_hdbscan_model = HDBSCAN(min_cluster_size=30, # Example default
+                                           min_samples=10,
+                                           metric='euclidean',
+                                           gen_min_span_tree=True,
+                                           prediction_data=True)
+
         print(f"Creating and fitting BERTopic model for {name} on {len(docs_for_fitting)} documents...")
         topic_model = BERTopic(
-            embedding_model=embedding_model,
-            umap_model=umap_model,
-            hdbscan_model=hdbscan_model,
-            vectorizer_model=vectorizer_model,
-            calculate_probabilities=True,
+            embedding_model=embedding_model,    # Use the globally loaded embedding model
+            umap_model=umap_model_config,       # Use the shared UMAP config
+            hdbscan_model=current_hdbscan_model,# Use the dataset-specific HDBSCAN model
+            vectorizer_model=vectorizer_model_config, # Use the shared Vectorizer config
+            calculate_probabilities=True,       # Set to False if not needed for speed, True for visualize_probs
             verbose=True
         )
 
         topics, probs = topic_model.fit_transform(docs_for_fitting)
-        print(f"BERTopic model fitting complete for {name}. Found {len(set(topics))} unique topic IDs (including -1 for outliers).")
+        print(f"BERTopic model fitting complete for {name}. Found {len(topic_model.get_topic_info())-1} topics (excluding -1 for outliers).") # More direct way to get topic count
 
         df_sorted['topic'] = topics
         topic_counts = topic_model.get_topic_info()
@@ -117,64 +143,75 @@ for name, path in input_files.items():
         print(f"Saved topic counts to {topic_counts_path}")
 
         print("Generating topic keywords for mapping...")
+        # Ensure topic_keywords_map correctly handles integer topic IDs from get_topic_info()
         topic_keywords_map = topic_counts.set_index('Topic')['Name'].to_dict()
-        df_sorted['topic_keywords'] = df_sorted['topic'].map(lambda x: topic_keywords_map.get(x, "Outlier_Topic_-1"))
+
+        # Map topics to keywords, ensure mapping uses correct Topic ID type (usually int)
+        df_sorted['topic_keywords'] = df_sorted['topic'].map(lambda x: topic_keywords_map.get(int(x), f"Outlier_Topic_{x}"))
+
 
         output_path_with_topics = output_dir / f"{name}_with_topics.csv"
         df_sorted.to_csv(output_path_with_topics, index=False)
         print(f"Saved dataframe with documents, timestamps, and topics to {output_path_with_topics}")
 
         model_save_path = topic_model_dir / f"{name}_bertopic_model"
-        topic_model.save(str(model_save_path))
-        print(f"Saved BERTopic model to {model_save_path}")
+        topic_model.save(str(model_save_path), serialization="pickle", save_embedding_model=False) # save_embedding_model=False as it's global
+        print(f"Saved BERTopic model to {model_save_path} (embedding model not saved within)")
 
         print(f"Creating standard topic visualizations (HTML files) for {name}...")
-        top_n_viz = 15
-        valid_model_topics = topic_counts[topic_counts['Topic'] != -1]['Topic'].tolist()
-        viz_topics = []
-        if valid_model_topics:
-            viz_topics = topic_counts[topic_counts['Topic'].isin(valid_model_topics)].sort_values('Count', ascending=False)['Topic'].head(top_n_viz).tolist()
-            if not viz_topics:
-                 viz_topics = valid_model_topics[:min(top_n_viz, len(valid_model_topics))]
+        top_n_viz = min(15, len(topic_counts[topic_counts['Topic'] != -1])) # Ensure top_n_viz is not more than available topics
+        
+        # Get topics sorted by count for visualization, excluding outlier topic
+        valid_topics_for_viz = topic_counts[topic_counts['Topic'] != -1].sort_values('Count', ascending=False)
+        viz_topics_ids = valid_topics_for_viz['Topic'].head(top_n_viz).tolist()
 
-        if viz_topics:
-            print(f"Selected top {len(viz_topics)} topics for visualization: {viz_topics}")
+
+        if viz_topics_ids:
+            print(f"Selected top {len(viz_topics_ids)} topics for visualization: {viz_topics_ids}")
             try:
-                fig = topic_model.visualize_barchart(top_n_topics=len(viz_topics), topics=viz_topics)
+                # Adjust n_words for barchart if default is too many
+                fig = topic_model.visualize_barchart(top_n_topics=len(viz_topics_ids), topics=viz_topics_ids, n_words=10) 
                 barchart_path = topic_model_dir / f"{name}_topic_barchart.html"
                 fig.write_html(str(barchart_path))
                 print(f"Saved topic barchart to {barchart_path}")
             except Exception as e:
                 print(f"Error visualizing barchart for {name}: {e}")
+                traceback.print_exc() # Print full traceback for viz errors
 
             try:
-                fig = topic_model.visualize_topics(topics=viz_topics)
+                fig = topic_model.visualize_topics(topics=viz_topics_ids) # Pass specific topic IDs
                 map_path = topic_model_dir / f"{name}_topic_map.html"
                 fig.write_html(str(map_path))
                 print(f"Saved topic map to {map_path}")
             except Exception as e:
                  print(f"Error visualizing topic map for {name}: {e}")
+                 traceback.print_exc()
 
             try:
-                fig = topic_model.visualize_hierarchy(topics=viz_topics)
+                fig = topic_model.visualize_hierarchy(top_n_topics=len(viz_topics_ids), topics=viz_topics_ids) # Pass specific topic IDs
                 hierarchy_path = topic_model_dir / f"{name}_topic_hierarchy.html"
                 fig.write_html(str(hierarchy_path))
                 print(f"Saved topic hierarchy to {hierarchy_path}")
             except Exception as e:
                  print(f"Error visualizing hierarchy for {name}: {e}")
+                 traceback.print_exc()
         else:
             print(f"Skipping standard topic visualizations for {name} as no valid topics were available or selected for visualization.")
 
-        # --- Temporal Topic Analysis Section REMOVED ---
         print(f"Temporal topic analysis (generation of _topics_over_time.csv and _topic_evolution.html) should be run using a separate script.")
 
         print(f"Preparing data for Topic-Sentiment Analysis for {name}...")
         if 'sentiment' in df_sorted.columns:
-            df_topics_for_sentiment = df_sorted[df_sorted['topic'] != -1]
+            df_topics_for_sentiment = df_sorted[df_sorted['topic'] != -1] # Exclude outliers
             if not df_topics_for_sentiment.empty:
+                # Ensure sentiment column is categorical if it's not already for crosstab
+                # df_topics_for_sentiment['sentiment'] = pd.Categorical(df_topics_for_sentiment['sentiment'])
+                
                 sentiment_by_topic = pd.crosstab(df_topics_for_sentiment['topic'], df_topics_for_sentiment['sentiment'], normalize='index') * 100
-                sentiment_by_topic = sentiment_by_topic.reset_index()
-                sentiment_by_topic.columns.name = None
+                sentiment_by_topic = sentiment_by_topic.reset_index() # Topic is now a column
+                sentiment_by_topic.columns.name = None 
+                
+                # Map topic ID to keywords
                 sentiment_by_topic['topic_keywords'] = sentiment_by_topic['topic'].astype(int).map(topic_keywords_map)
                 
                 topic_sentiment_path = output_dir / f"{name}_topic_sentiment.csv"
@@ -187,10 +224,12 @@ for name, path in input_files.items():
 
         print(f"Extracting topic terms for {name}...")
         topic_terms = {}
-        for topic_id in topic_counts[topic_counts['Topic'] != -1]['Topic']:
-            terms = topic_model.get_topic(topic_id)
-            if terms is not None:
-                topic_terms[topic_id] = {term: score for term, score in terms}
+        # Iterate through topics present in the model (excluding outlier)
+        for topic_id in topic_model.get_topics().keys(): # get_topics() returns a dict of topic_id: terms
+            if topic_id != -1: # Exclude outlier topic
+                terms = topic_model.get_topic(topic_id) # Returns list of (term, score) tuples
+                if terms is not None: # Should not be None if topic_id is valid
+                    topic_terms[topic_id] = {term: score for term, score in terms}
 
         if topic_terms:
             topic_terms_path = topic_model_dir / f"{name}_topic_terms.pkl"
