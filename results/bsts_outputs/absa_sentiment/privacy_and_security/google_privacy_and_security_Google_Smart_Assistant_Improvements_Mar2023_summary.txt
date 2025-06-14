@@ -1,40 +1,31 @@
-Causal Impact Analysis Summary for Event: Google_Smart_Assistant_Improvements_Mar2023
-Intervention Date: 2023-03-15
-Assistant Analyzed: GOOGLE
-Aspect Analyzed: Privacy & Security
-Aggregation Period: W-MON
-Sentiment Metric: mean_score
-Covariates Used: alexa_privacy_and_security_cov, google_overall_sentiment_cov
---------------------------------------------------
 Posterior Inference {Causal Impact}
                           Average            Cumulative
 Actual                    -0.44              -46.62
-Prediction (s.d.)         -0.45 (0.1)        -48.02 (10.24)
-95% CI                    [-0.67, -0.3]      [-72.11, -31.96]
+Prediction (s.d.)         -0.4 (0.07)        -42.29 (7.15)
+95% CI                    [-0.53, -0.26]     [-56.22, -28.19]
 
-Absolute effect (s.d.)    0.01 (0.1)         1.4 (10.24)
-95% CI                    [-0.14, 0.24]      [-14.67, 25.49]
+Absolute effect (s.d.)    -0.04 (0.07)       -4.33 (7.15)
+95% CI                    [-0.17, 0.09]      [-18.43, 9.59]
 
-Relative effect (s.d.)    -2.91% (21.33%)    -2.91% (21.33%)
-95% CI                    [-53.08%, 30.54%]  [-53.08%, 30.54%]
+Relative effect (s.d.)    10.24% (16.91%)    10.24% (16.91%)
+95% CI                    [-22.69%, 43.58%]  [-22.69%, 43.58%]
 
-Posterior tail-area probability p: 0.49
-Posterior prob. of a causal effect: 50.75%
+Posterior tail-area probability p: 0.27
+Posterior prob. of a causal effect: 72.83%
 
 For more details run the command: print(impact.summary('report'))
---------------------------------------------------
-Full Report:
+
 Analysis report {CausalImpact}
 
 
 During the post-intervention period, the response variable had
 an average value of approx. -0.44. By contrast, in the absence of an
-intervention, we would have expected an average response of -0.45.
-The 95% interval of this counterfactual prediction is [-0.67, -0.3].
+intervention, we would have expected an average response of -0.4.
+The 95% interval of this counterfactual prediction is [-0.53, -0.26].
 Subtracting this prediction from the observed response yields
 an estimate of the causal effect the intervention had on the
-response variable. This effect is 0.01 with a 95% interval of
-[-0.14, 0.24]. For a discussion of the significance of this effect,
+response variable. This effect is -0.04 with a 95% interval of
+[-0.17, 0.09]. For a discussion of the significance of this effect,
 see below.
 
 
@@ -42,22 +33,22 @@ Summing up the individual data points during the post-intervention
 period (which can only sometimes be meaningfully interpreted), the
 response variable had an overall value of -46.62.
 By contrast, had the intervention not taken place, we would have expected
-a sum of -48.02. The 95% interval of this prediction is [-72.11, -31.96].
+a sum of -42.29. The 95% interval of this prediction is [-56.22, -28.19].
 
 
 The above results are given in terms of absolute numbers. In relative
-terms, the response variable showed a decrease of -2.91%. The 95%
-interval of this percentage is [-53.08%, 30.54%].
+terms, the response variable showed an increase of +10.24%. The 95%
+interval of this percentage is [-22.69%, 43.58%].
 
 
-This means that the negative effect observed during the intervention
-period is statistically significant.
-If the experimenter had expected a positive effect, it is recommended
-to double-check whether anomalies in the control variables may have
-caused an overly optimistic expectation of what should have happened
-in the response variable in the absence of the intervention.
+This means that the positive effect observed during the intervention
+period is statistically significant and unlikely to be due to random
+fluctuations. It should be noted, however, that the question of whether
+this increase also bears substantive significance can only be answered
+by comparing the absolute effect (-0.04) to the original goal
+of the underlying intervention.
 
 
-The probability of obtaining this effect by chance is p = 49.25%.
+The probability of obtaining this effect by chance is p = 27.17%.
 This means the effect may be spurious and would generally not be
 considered statistically significant.
