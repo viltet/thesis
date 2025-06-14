@@ -6,7 +6,7 @@ from pathlib import Path
 import os
 
 # --- 1. Configuration ---
-# Set these variables to control which analysis to run.
+
 
 # Choose the primary assistant to analyze
 ASSISTANT_NAME_TO_ANALYZE = "alexa"  # Options: "google" or "alexa"
@@ -20,24 +20,21 @@ USE_OTHER_ASSISTANT_ASPECT_AS_COVARIATE = True
 # Set to True to use the main assistant's own overall sentiment as a control variable
 USE_OVERALL_SENTIMENT_AS_COVARIATE = True
 
-# --- Path and File Setup ---
-try:
-    SCRIPT_DIR = Path(__file__).resolve().parent
-    PROJECT_ROOT_DIR = SCRIPT_DIR.parent
-except NameError:
-    # Fallback for interactive environments (like Colab or Jupyter).
-    # IMPORTANT: Adjust this path to your main thesis folder.
-    PROJECT_ROOT_DIR = Path("/Users/viltetverijonaite/Desktop/MSC/THESIS/thesis/")
 
-RESULTS_DIR = PROJECT_ROOT_DIR / "results"
+# --- Path and File Setup ---
+SCRIPT_DIR = Path(__file__).resolve().parent
+THESIS_ROOT = SCRIPT_DIR.parent
+
+RESULTS_DIR = THESIS_ROOT / "results"
 BSTS_OUTPUT_DIR = RESULTS_DIR / "bsts_outputs" / "absa_sentiment"
 BSTS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # --- ABSA Data File Mapping ---
 ABSA_FILE_MAPPING = {
-    "alexa": "absa_full_results_colab/alexa_full_absa_sentiments_colab.csv",
-    "google": "absa_full_results_colab/google_full_absa_sentiments_colab_COMBINED.csv"
+    "alexa": RESULTS_DIR / "absa_full_results_colab" / "alexa_full_absa_sentiments_colab.csv",
+    "google": RESULTS_DIR / "absa_full_results_colab" / "google_full_absa_sentiments_colab_COMBINED.csv"
 }
+
 
 # --- Intervention Events ---
 ALEXA_EVENTS = [

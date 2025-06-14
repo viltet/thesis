@@ -6,10 +6,6 @@ import re # For parsing InstructABSA output
 import warnings # To suppress specific warnings if needed
 import gc # Garbage collector
 
-# --- Filter specific Hugging Face warnings if they become noisy ---
-# warnings.filterwarnings("ignore", message=".*Your system requires specified dependencies*")
-# warnings.filterwarnings("ignore", message=".*Xformers is not available*")
-# warnings.filterwarnings("ignore", category=UserWarning, message="TypedStorage is deprecated") # Suppress specific torch warning if needed
 
 # --- Model Imports ---
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
@@ -23,8 +19,7 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification, Auto
 from sklearn.metrics import classification_report, accuracy_score, f1_score
 
 # --- Configuration ---
-# Path to your ANNOTATED pilot data CSV
-# !!! ENSURE THIS FILE EXISTS AND THE 'manual_sentiment' COLUMN IS FILLED !!!
+
 ANNOTATED_PILOT_FILE = Path("./results/absa_pilot/alexa_absa_pilot_annotation.csv") # <-- ADJUST IF NEEDED
 
 # Output file for results with predictions

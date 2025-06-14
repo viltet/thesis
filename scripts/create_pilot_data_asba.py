@@ -7,26 +7,23 @@ import re # Import regular expressions module
 # --- Configuration ---
 # Choose which dataset to sample from ('alexa' or 'google')
 ASSISTANT_NAME = "alexa" 
-# Number of reviews to initially sample
+
 N_REVIEWS_TO_SAMPLE = 100 
 # Target number of aspect-sentence pairs for annotation
 N_ANNOTATION_TARGET = 100 
-# Random seed for reproducibility
+
 RANDOM_SEED = 42
 
 # --- Paths ---
-# Assume the script is run from a location where THESIS_ROOT can be determined
-# If running interactively, you might need to adjust this path definition
+
 try:
     # Assumes script is in thesis/scripts or similar
     BASE_DIR = Path(__file__).resolve().parent 
     THESIS_ROOT = BASE_DIR.parent
 except NameError:
-    # Fallback for interactive environments (e.g., Jupyter, Colab)
-    # Adjust this path manually if needed
+
     THESIS_ROOT = Path("./") # Or specify the absolute path to your thesis root directory
     print(f"Warning: Could not determine script location automatically. Using fallback THESIS_ROOT: {THESIS_ROOT.resolve()}")
-    # Example manual path: THESIS_ROOT = Path("/path/to/your/thesis/folder")
 
 # Define input file path
 input_file = THESIS_ROOT / "results" / f"{ASSISTANT_NAME}_with_topics.csv"
@@ -236,7 +233,4 @@ pilot_df.to_csv(output_file, index=False, encoding='utf-8')
 print("\n--- Pilot Setup Complete ---")
 print(f"1. A CSV file named '{output_file.name}' has been created in '{output_dir}'.")
 print(f"2. This file contains {len(pilot_df)} sentence-aspect pairs ready for manual annotation.")
-print("3. Open this CSV file in a spreadsheet editor (like Excel, Google Sheets, LibreOffice Calc).")
-print("4. Follow the annotation guidelines provided separately to fill in the 'manual_sentiment' column.")
-print("5. Save the file after annotation. This annotated file will be used to evaluate the ABSA model.")
-
+print("3. The pairs need manual annotating).")

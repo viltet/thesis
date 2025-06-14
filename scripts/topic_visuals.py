@@ -48,7 +48,7 @@ google_topic_id_to_name_map = {
     8: "Updates & Google App Int."
 }
 
-# --- !!! ADJUSTED: Enhanced Visualization Parameters !!! ---
+# --- Visualization Parameters  ---
 try:
     # This style has a good default color cycle (tab10) for distinct lines
     plt.style.use('seaborn-v0_8-darkgrid')
@@ -205,4 +205,4 @@ for name in platforms:
         print(f"An unexpected error occurred while processing {name}: {e}")
         traceback.print_exc()
 
-print("\n🖼️ Temporal Topic Analysis & Static Plot Script Finished 🔄")
+print("\nTemporal Topic Analysis & Static Plot Script Finished ")

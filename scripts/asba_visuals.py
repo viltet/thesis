@@ -12,13 +12,11 @@ try:
     SCRIPT_DIR = Path(__file__).resolve().parent
     PROJECT_ROOT_DIR = SCRIPT_DIR.parent
 except NameError:
-    # Fallback for interactive environments (e.g., Jupyter notebook)
-    # Assumes interactive session is started from 'thesis' or 'thesis/scripts'
+
     PROJECT_ROOT_DIR = Path.cwd()
     if PROJECT_ROOT_DIR.name == "scripts": # If current working directory is 'scripts', go up
         PROJECT_ROOT_DIR = PROJECT_ROOT_DIR.parent
-    # If you run this script from a different location, you might need to adjust PROJECT_ROOT_DIR manually:
-    # Example: PROJECT_ROOT_DIR = Path("/path/to/your/thesis_folder")
+
 
 RESULTS_DIR = PROJECT_ROOT_DIR / "results"
 INPUT_DATA_DIR = RESULTS_DIR / "absa_full_results_colab"

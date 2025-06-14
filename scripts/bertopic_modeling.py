@@ -62,7 +62,7 @@ umap_model_config = UMAP(n_neighbors=15,
                          random_state=42,
                          low_memory=True) # Added low_memory from robust script
 
-# --- Shared CountVectorizer Configuration (adjust min_df if needed, add max_df) ---
+# --- Shared CountVectorizer Configuration 
 # For full dataset, a fixed min_df is reasonable. max_df from optimization.
 vectorizer_model_config = CountVectorizer(stop_words="english",
                                           min_df=10, # A reasonable min_df for full datasets

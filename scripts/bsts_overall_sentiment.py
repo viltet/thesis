@@ -123,7 +123,7 @@ else:
                 f.write("\n\n" + ci.summary(output='report'))
             print(f"Summary saved to {summary_filename}")
 
-            # --- FINAL CORRECTED PLOTTING LOGIC ---
+            # --- FINAL PLOTTING LOGIC ---
             plot_filename = BSTS_OUTPUT_DIR / f"{ASSISTANT_NAME_TO_ANALYZE}_{event_name}_plot.png"
             print(f"Generating plot and saving to {plot_filename}...")
             

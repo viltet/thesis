@@ -4,10 +4,9 @@ from transformers import DistilBertTokenizer, DistilBertForSequenceClassificatio
 from torch.nn.functional import softmax
 from tqdm.auto import tqdm # Use tqdm.auto for notebook/script compatibility
 import time
-from pathlib import Path # Ensure Path is imported
+from pathlib import Path 
 
 # --- Configuration ---
-# Use GPU if available
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
@@ -19,7 +18,7 @@ model = DistilBertForSequenceClassification.from_pretrained(model_name)
 model.to(device)
 model.eval() # Set model to evaluation mode
 
-# --- Corrected Path Setup ---
+# --- Path Setup ---
 # Dynamically gets the current script's folder (e.g., 'thesis/scripts/')
 SCRIPT_DIR = Path(__file__).resolve().parent
 # Navigate up one level to get the main project root (e.g., 'thesis/')

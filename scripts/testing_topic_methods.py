@@ -146,17 +146,6 @@ def optimize_bertopic_parameters(docs, embedding_model, min_cluster_range=[15, 2
                 # Need at least 2 clusters and more samples than clusters for silhouette
                 if non_outlier_mask.sum() > 1 and len(set(np.array(topics)[non_outlier_mask])) > 1 and \
                    non_outlier_mask.sum() > len(set(np.array(topics)[non_outlier_mask])):
-                    
-                    # UMAP transform on relevant embeddings for silhouette/calinski
-                    # Ensure reduced_embeddings are only for non-outliers if using them directly
-                    # For simplicity, if UMAP is part of BERTopic, the main embeddings can be used,
-                    # but only the non_outlier_mask subset.
-                    
-                    # If UMAP needs to be re-run on the subset for evaluation:
-                    # eval_umap = UMAP(n_neighbors=15, n_components=2, random_state=42, low_memory=True) # 2 components often used for silhouette
-                    # reduced_eval_embeddings = eval_umap.fit_transform(embeddings[non_outlier_mask])
-                    # silhouette_avg = silhouette_score(reduced_eval_embeddings, np.array(topics)[non_outlier_mask])
-                    # calinski_score = calinski_harabasz_score(reduced_eval_embeddings, np.array(topics)[non_outlier_mask])
 
                     # Simpler: use full embeddings subset if UMAP already ran internally
                     silhouette_avg = silhouette_score(embeddings[non_outlier_mask], np.array(topics)[non_outlier_mask])
