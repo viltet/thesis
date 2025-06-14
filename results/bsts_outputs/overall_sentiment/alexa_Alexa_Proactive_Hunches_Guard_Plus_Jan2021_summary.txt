@@ -1,39 +1,31 @@
-Causal Impact Analysis Summary for Event: Alexa_Proactive_Hunches_Guard_Plus_Jan2021
-Intervention Date: 2021-01-25
-Assistant Analyzed: ALEXA
-Aggregation Period: W-MON
-Sentiment Metric: mean_score
-Covariates Used: google_sentiment_covariate
---------------------------------------------------
 Posterior Inference {Causal Impact}
                           Average            Cumulative
 Actual                    -0.35              -76.39
-Prediction (s.d.)         0.09 (0.2)         19.2 (43.75)
-95% CI                    [-0.29, 0.49]      [-64.19, 107.31]
+Prediction (s.d.)         0.08 (0.18)        18.41 (40.49)
+95% CI                    [-0.28, 0.45]      [-60.84, 97.88]
 
-Absolute effect (s.d.)    -0.44 (0.2)        -95.59 (43.75)
-95% CI                    [-0.84, -0.06]     [-183.7, -12.2]
+Absolute effect (s.d.)    -0.43 (0.18)       -94.8 (40.49)
+95% CI                    [-0.8, -0.07]      [-174.27, -15.55]
 
-Relative effect (s.d.)    -497.95% (227.92%) -497.95% (227.92%)
-95% CI                    [-956.98%, -63.55%][-956.98%, -63.55%]
+Relative effect (s.d.)    -514.9% (219.91%)  -514.9% (219.91%)
+95% CI                    [-946.52%, -84.48%][-946.52%, -84.48%]
 
 Posterior tail-area probability p: 0.01
-Posterior prob. of a causal effect: 98.8%
+Posterior prob. of a causal effect: 98.6%
 
 For more details run the command: print(impact.summary('report'))
---------------------------------------------------
-Full Report:
+
 Analysis report {CausalImpact}
 
 
 During the post-intervention period, the response variable had
 an average value of approx. -0.35. By contrast, in the absence of an
-intervention, we would have expected an average response of 0.09.
-The 95% interval of this counterfactual prediction is [-0.29, 0.49].
+intervention, we would have expected an average response of 0.08.
+The 95% interval of this counterfactual prediction is [-0.28, 0.45].
 Subtracting this prediction from the observed response yields
 an estimate of the causal effect the intervention had on the
-response variable. This effect is -0.44 with a 95% interval of
-[-0.84, -0.06]. For a discussion of the significance of this effect,
+response variable. This effect is -0.43 with a 95% interval of
+[-0.8, -0.07]. For a discussion of the significance of this effect,
 see below.
 
 
@@ -41,12 +33,12 @@ Summing up the individual data points during the post-intervention
 period (which can only sometimes be meaningfully interpreted), the
 response variable had an overall value of -76.39.
 By contrast, had the intervention not taken place, we would have expected
-a sum of 19.2. The 95% interval of this prediction is [-64.19, 107.31].
+a sum of 18.41. The 95% interval of this prediction is [-60.84, 97.88].
 
 
 The above results are given in terms of absolute numbers. In relative
-terms, the response variable showed a decrease of -497.95%. The 95%
-interval of this percentage is [-956.98%, -63.55%].
+terms, the response variable showed a decrease of -514.9%. The 95%
+interval of this percentage is [-946.52%, -84.48%].
 
 
 This means that the negative effect observed during the intervention
